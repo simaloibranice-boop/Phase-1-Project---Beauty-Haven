@@ -1,0 +1,43 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 0; padding: 0;
+  background: #fafafa;
+  color: #333;
+}
+
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 1rem; background: #f06292; color: white;
+}
+
+#controls {
+  text-align: center; margin: 1rem;
+}
+
+#controls button {
+  margin: 0 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 5px;
+  cursor: pointer; background: #f06292; color: white; font-weight: bold;
+}
+
+main {
+  display: flex; gap: 1rem; padding: 1rem;
+}
+
+#products {
+  flex: 3; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 1rem;
+}
+
+.product-card {
+  background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.product-card button {
+  margin-top: 0.5rem; background: #f06292; border: none; padding: 0.5rem;
+  color: white; border-radius: 5px; cursor: pointer;
+}
+
+#cart {
+  flex: 1; background: white; padding: 1rem; border-radius: 8px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
