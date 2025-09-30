@@ -1,5 +1,5 @@
 // API URL — use static JSON for GitHub Pages
- const API_URL = "products.json";
+ const API_URL = "./products.json";
 const ORDERS_URL = null; // no server on GitHub Pages
 
 let products = [];
