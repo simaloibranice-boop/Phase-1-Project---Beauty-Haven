@@ -1,43 +1,190 @@
+/* Reset */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  margin: 0; padding: 0;
-  background: #fafafa;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: #fff0f5; /* soft pink-lavender background */
   color: #333;
+  line-height: 1.5;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 
 header {
-  display: flex; justify-content: space-between; align-items: center;
-  padding: 1rem; background: #f06292; color: white;
+  background: #e91e63; /* beauty pink */
+  color: #fff;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
-#controls {
-  text-align: center; margin: 1rem;
+header h1 {
+  font-size: 1.5rem;
 }
 
-#controls button {
-  margin: 0 0.5rem; padding: 0.5rem 1rem; border: none; border-radius: 5px;
-  cursor: pointer; background: #f06292; color: white; font-weight: bold;
+.cart-icon {
+  font-size: 1.2rem;
 }
 
 main {
-  display: flex; gap: 1rem; padding: 1rem;
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  padding: 20px;
 }
 
-#products {
-  flex: 3; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 1rem;
+/* Product Grid */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .product-card {
-  background: white; padding: 1rem; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.product-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.product-card img {
+  width: 100%;
+  height: 140px;
+  object-fit: cover;
+  border-radius: 8px;
+  margin-bottom: 10px;
+}
+
+.product-card h3 {
+  font-size: 1.1rem;
+  margin-bottom: 4px;
+  color: #222;
+}
+
+.product-card p {
+  margin: 2px 0;
 }
 
 .product-card button {
-  margin-top: 0.5rem; background: #f06292; border: none; padding: 0.5rem;
-  color: white; border-radius: 5px; cursor: pointer;
+  margin-top: 8px;
+  background: #e91e63;
+  color: #fff;
+  border: none;
+  padding: 6px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.2s ease;
 }
 
-#cart {
-  flex: 1; background: white; padding: 1rem; border-radius: 8px;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+.product-card button:hover {
+  background: #c2185b;
 }
+
+/* Cart */
+aside {
+  background: #fff;
+  border-radius: 10px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+  height: fit-content;
+}
+
+aside h2 {
+  margin-bottom: 8px;
+  color: #e91e63;
+}
+
+#cart-items {
+  list-style: none;
+  margin: 8px 0;
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+#cart-items li {
+  display: flex;
+  justify-content: space-between;
+  padding: 4px 0;
+  border-bottom: 1px solid #eee;
+}
+
+#cart-items li:last-child {
+  border-bottom: none;
+}
+
+.remove-btn {
+  background: transparent;
+  border: none;
+  color: #e91e63;
+  cursor: pointer;
+}
+
+/* Buttons */
+button.primary {
+  background: #e91e63;
+  color: #fff;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+button.primary:hover {
+  background: #c2185b;
+}
+
+/* Footer */
+footer {
+  background: #f8f8f8;
+  text-align: center;
+  padding: 12px;
+  font-size: 0.9rem;
+  border-top: 1px solid #eee;
+  color: #555;
+}
+
+/* Modal (already included earlier) */
+.modal.hidden { display: none; }
+.modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+}
+.modal-content {
+  background: white;
+  padding: 18px;
+  border-radius: 8px;
+  width: 90%;
+  max-width: 520px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.2);
+  position: relative;
+}
+.close {
+  position: absolute;
+  right: 10px;
+  top: 8px;
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  cursor: pointer;
+}
+.status { margin-top: 10px; font-size: 0.95rem; color: #333; }
+.status.success { color: green; }
+.status.error { color: #b00020; }

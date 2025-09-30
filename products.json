@@ -1,0 +1,23 @@
+[
+  {
+    "id": 1,
+    "title": "Hydrating Face Cream",
+    "brand": "GlowCo",
+    "price": 1200,
+    "image": "https://via.placeholder.com/200x120?text=Face+Cream"
+  },
+  {
+    "id": 2,
+    "title": "Matte Lipstick",
+    "brand": "BeautyPro",
+    "price": 800,
+    "image": "https://via.placeholder.com/200x120?text=Lipstick"
+  },
+  {
+    "id": 3,
+    "title": "Aloe Vera Gel",
+    "brand": "Nature's Best",
+    "price": 600,
+    "image": "https://via.placeholder.com/200x120?text=Aloe+Gel"
+  }
+]

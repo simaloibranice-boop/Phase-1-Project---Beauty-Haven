@@ -1,85 +1,297 @@
-const productsContainer = document.getElementById("products");
-const cartItems = document.getElementById("cart-items");
-const cartTotal = document.getElementById("cart-total");
-const cartCount = document.getElementById("cart-count");
+// API URL — update to match your JSON Server port or remote API
+const API_URL = "http://localhost:3001/products";
+const ORDERS_URL = "http://localhost:3001/orders"; // POST here to save orders if desired
 
+let products = [];
 let cart = [];
 
-// API Endpoints
-const LOCAL_API = "http://localhost:3000/products";
-const MAKEUP_API = "http://makeup-api.herokuapp.com/api/v1/products.json?brand=maybelline&product_type=lipstick";
+// DOM
+const productList = document.getElementById("product-list");
+const cartItemsEl = document.getElementById("cart-items");
+const cartTotalEl = document.getElementById("cart-total");
+const cartCountEl = document.getElementById("cart-count");
+const clearCartBtn = document.getElementById("clear-cart");
+const checkoutBtn = document.getElementById("checkout-btn");
 
-// Fetch and display products
-async function fetchProducts(apiUrl, isLocal = true) {
-  productsContainer.innerHTML = "Loading products...";
+// modal elements
+const paymentModal = document.getElementById("payment-modal");
+const closeModalBtn = document.getElementById("close-modal");
+const checkoutSummary = document.getElementById("checkout-summary");
+const paymentMethodSelect = document.getElementById("payment-method");
+const mpesaForm = document.getElementById("mpesa-form");
+const bankForm = document.getElementById("bank-form");
+const mpesaPhoneInput = document.getElementById("mpesa-phone");
+const mpesaPayBtn = document.getElementById("mpesa-pay");
+const mpesaStatus = document.getElementById("mpesa-status");
+const bankRefEl = document.getElementById("bank-ref");
+const bankDoneBtn = document.getElementById("bank-done");
+const bankStatus = document.getElementById("bank-status");
+const orderResult = document.getElementById("order-result");
+
+// Init
+document.addEventListener("DOMContentLoaded", () => {
+  fetchProducts();
+  renderCart();
+});
+
+// Fetch products
+async function fetchProducts() {
+  productList.innerHTML = "<p>Loading products...</p>";
   try {
-    const res = await fetch(apiUrl);
-    const data = await res.json();
-
-    // Normalize data (local JSON vs Makeup API have different structures)
-    const products = isLocal
-      ? data
-      : data.slice(0, 12).map(p => ({
-          id: p.id,
-          name: p.name,
-          brand: p.brand,
-          price: Math.floor(Math.random() * 4000) + 500, // random price
-          category: p.product_type,
-        }));
-
+    const res = await fetch(API_URL);
+    if (!res.ok) throw new Error(res.statusText);
+    products = await res.json();
     renderProducts(products);
   } catch (err) {
-    productsContainer.innerHTML = "⚠️ Failed to load products.";
-    console.error(err);
+    console.error("Fetch products error:", err);
+    productList.innerHTML = `<p style="color:red">⚠️ Failed to load products. <button onclick="fetchProducts()">Retry</button></p>`;
   }
 }
 
-function renderProducts(products) {
-  productsContainer.innerHTML = "";
-  products.forEach(product => {
+// Render products
+function renderProducts(list) {
+  productList.innerHTML = "";
+  list.forEach(p => {
     const card = document.createElement("div");
     card.className = "product-card";
     card.innerHTML = `
-      <h3>${product.name}</h3>
-      <p><strong>Brand:</strong> ${product.brand}</p>
-      <p><strong>Category:</strong> ${product.category}</p>
-      <p><strong>Price:</strong> Ksh ${product.price}</p>
-      <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})">Add to Cart</button>
+      <img src="${p.image}" alt="${escapeHtml(p.name)}" />
+      <h3>${escapeHtml(p.name)}</h3>
+      <p><em>${escapeHtml(p.category)}</em></p>
+      <p>Brand: ${escapeHtml(p.brand)}</p>
+      <p><strong>Ksh ${Number(p.price).toLocaleString()}</strong></p>
+      <button data-id="${p.id}">Add to Cart</button>
     `;
-    productsContainer.appendChild(card);
+    const btn = card.querySelector("button");
+    btn.addEventListener("click", () => addToCart(p.id));
+    productList.appendChild(card);
   });
 }
 
-// Cart functions
-function addToCart(id, name, price) {
-  cart.push({ id, name, price });
-  updateCart();
+// Add to cart by id
+function addToCart(id) {
+  const product = products.find(p => p.id === id);
+  if (!product) return;
+  const existing = cart.find(i => i.id === id);
+  if (existing) existing.qty++;
+  else cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
+  saveCart();
+  renderCart();
 }
 
-function updateCart() {
-  cartItems.innerHTML = "";
+function saveCart() { localStorage.setItem("bh_cart", JSON.stringify(cart)); }
+
+function loadCart() {
+  const saved = JSON.parse(localStorage.getItem("bh_cart") || "[]");
+  cart = Array.isArray(saved) ? saved : [];
+}
+
+// Render cart
+function renderCart() {
+  loadCart();
+  cartItemsEl.innerHTML = "";
   let total = 0;
-
-  cart.forEach((item, index) => {
-    total += item.price;
+  cart.forEach(item => {
+    total += item.price * item.qty;
     const li = document.createElement("li");
-    li.textContent = `${item.name} - Ksh ${item.price}`;
-    li.innerHTML += ` <button onclick="removeFromCart(${index})">❌</button>`;
-    cartItems.appendChild(li);
+    li.className = "cart-item";
+    li.innerHTML = `<span>${escapeHtml(item.name)} - Ksh ${Number(item.price).toLocaleString()} x ${item.qty}</span>
+                    <button class="remove-btn" data-id="${item.id}">Remove</button>`;
+    cartItemsEl.appendChild(li);
   });
 
-  cartTotal.textContent = total;
-  cartCount.textContent = cart.length;
+  cartTotalEl.textContent = total;
+  cartCountEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
+
+  // attach remove listeners
+  cartItemsEl.querySelectorAll(".remove-btn").forEach(b => {
+    b.addEventListener("click", () => {
+      const id = Number(b.dataset.id);
+      removeFromCart(id);
+    });
+  });
 }
 
-function removeFromCart(index) {
-  cart.splice(index, 1);
-  updateCart();
+function removeFromCart(id) {
+  cart = cart.filter(i => i.id !== id);
+  saveCart();
+  renderCart();
 }
 
-// Event listeners
-document.getElementById("load-local").addEventListener("click", () => fetchProducts(LOCAL_API, true));
-document.getElementById("load-api").addEventListener("click", () => fetchProducts(MAKEUP_API, false));
+// Clear cart
+clearCartBtn.addEventListener("click", () => {
+  cart = [];
+  saveCart();
+  renderCart();
+});
 
-// Load local products by default
-fetchProducts(LOCAL_API, true);
+// Checkout button opens modal
+checkoutBtn.addEventListener("click", () => openPaymentModal());
+
+// Modal handlers
+function openPaymentModal() {
+  if (!cart.length) {
+    alert("Your cart is empty. Add some products first.");
+    return;
+  }
+  // populate summary
+  const lines = cart.map(i => `${i.name} x${i.qty} — Ksh ${i.price * i.qty}`);
+  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
+  checkoutSummary.innerHTML = `<div>${lines.join("<br>")}</div><p><strong>Total: Ksh ${total}</strong></p>`;
+  // reset forms
+  mpesaStatus.textContent = "";
+  bankStatus.textContent = "";
+  orderResult.textContent = "";
+  mpesaPhoneInput.value = "";
+  // set default payment view
+  paymentMethodSelect.value = "mpesa";
+  mpesaForm.classList.remove("hidden");
+  bankForm.classList.add("hidden");
+  paymentModal.classList.remove("hidden");
+  paymentModal.setAttribute("aria-hidden", "false");
+}
+
+// change payment method UI
+paymentMethodSelect.addEventListener("change", (e) => {
+  if (e.target.value === "mpesa") {
+    mpesaForm.classList.remove("hidden");
+    bankForm.classList.add("hidden");
+  } else {
+    mpesaForm.classList.add("hidden");
+    bankForm.classList.remove("hidden");
+    // generate a bank reference
+    bankRefEl.textContent = generateReference();
+  }
+});
+
+closeModalBtn.addEventListener("click", closePaymentModal);
+paymentModal.addEventListener("click", (e) => {
+  if (e.target === paymentModal) closePaymentModal();
+});
+
+function closePaymentModal() {
+  paymentModal.classList.add("hidden");
+  paymentModal.setAttribute("aria-hidden", "true");
+}
+
+// M-Pesa simulated "STK push"
+mpesaPayBtn.addEventListener("click", async () => {
+  const phone = mpesaPhoneInput.value.trim();
+  if (!/^(07|7)\d{8}$/.test(phone)) {
+    mpesaStatus.textContent = "Enter a valid Kenyan phone number (07XXXXXXXX).";
+    mpesaStatus.className = "status error";
+    return;
+  }
+  mpesaStatus.textContent = "Sending STK push to " + phone + " ...";
+  mpesaStatus.className = "status";
+  // simulate network call & user completing payment
+  mpesaPayBtn.disabled = true;
+  try {
+    await simulateNetwork(2000); // simulate delay
+    // random success/failure (80% success)
+    if (Math.random() < 0.8) {
+      mpesaStatus.textContent = "Payment successful (simulated).";
+      mpesaStatus.className = "status success";
+      // create order
+      const order = buildOrder("mpesa", { phone });
+      await saveOrder(order);
+      orderResult.textContent = "Order placed successfully. Order ref: " + order.reference;
+      orderResult.className = "status success";
+      // clear cart
+      cart = [];
+      saveCart();
+      renderCart();
+      setTimeout(closePaymentModal, 1400);
+    } else {
+      mpesaStatus.textContent = "Payment failed (simulated). Try again.";
+      mpesaStatus.className = "status error";
+    }
+  } catch (err) {
+    mpesaStatus.textContent = "Network error (simulated).";
+    mpesaStatus.className = "status error";
+    console.error(err);
+  } finally {
+    mpesaPayBtn.disabled = false;
+  }
+});
+
+// Bank flow — generate reference shown earlier
+bankDoneBtn.addEventListener("click", async () => {
+  const ref = bankRefEl.textContent || generateReference();
+  bankStatus.textContent = "Verifying payment (simulated)...";
+  bankStatus.className = "status";
+  bankDoneBtn.disabled = true;
+  try {
+    await simulateNetwork(1500);
+    // simulate verification (70% chance automatic success)
+    if (Math.random() < 0.7) {
+      bankStatus.textContent = "Payment verified (simulated).";
+      bankStatus.className = "status success";
+      const order = buildOrder("bank", { reference: ref });
+      await saveOrder(order);
+      orderResult.textContent = "Order placed. Order ref: " + order.reference;
+      orderResult.className = "status success";
+      cart = [];
+      saveCart();
+      renderCart();
+      setTimeout(closePaymentModal, 1400);
+    } else {
+      bankStatus.textContent = "No incoming payment found yet. Please wait or try again later.";
+      bankStatus.className = "status error";
+    }
+  } catch (err) {
+    bankStatus.textContent = "Network error (simulated).";
+    bankStatus.className = "status error";
+    console.error(err);
+  } finally {
+    bankDoneBtn.disabled = false;
+  }
+});
+
+// Utility: create order object
+function buildOrder(method, details) {
+  const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
+  const total = items.reduce((s, it) => s + it.price * it.qty, 0);
+  const reference = generateReference();
+  return {
+    id: Date.now(),
+    createdAt: new Date().toISOString(),
+    method,
+    details,
+    items,
+    total,
+    reference,
+    status: "paid"
+  };
+}
+
+// Save order to backend (optional)
+async function saveOrder(order) {
+  // attempt to POST to ORDERS_URL (requires /orders in db.json and json-server running)
+  try {
+    const res = await fetch(ORDERS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(order)
+    });
+    if (!res.ok) throw new Error("Orders save failed");
+    return await res.json();
+  } catch (err) {
+    // If saving to server fails, just log locally — still allow demo to proceed
+    console.warn("Could not save order to server (demo mode):", err);
+    return order;
+  }
+}
+
+// small helpers
+function generateReference() {
+  const r = Math.random().toString(36).slice(2, 8).toUpperCase();
+  return "BH-" + r + "-" + Date.now().toString().slice(-4);
+}
+function simulateNetwork(ms = 1000) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
+function escapeHtml(s) {
+  if (!s) return "";
+  return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+}

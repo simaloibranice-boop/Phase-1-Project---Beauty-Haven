@@ -1,0 +1,20 @@
+{
+  "name": "phase-1-project---beauty-haven",
+  "version": "1.0.0",
+  "description": "A simple Single Page Application (SPA) beauty shop where users can browse products, search by brand, and add items to a cart. Built with HTML, CSS, JavaScript, and the Makeup API.",
+  "main": "script.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/simaloibranice-boop/Phase-1-Project---Beauty-Haven.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/simaloibranice-boop/Phase-1-Project---Beauty-Haven/issues"
+  },
+  "homepage": "https://github.com/simaloibranice-boop/Phase-1-Project---Beauty-Haven#readme"
+}
