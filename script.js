@@ -1,297 +1,77 @@
-// API URL — update to match your JSON Server port or remote API
-const API_URL = "http://localhost:3001/products";
-const ORDERS_URL = "http://localhost:3001/orders"; // POST here to save orders if desired
+// Beauty Haven Script
 
-let products = [];
+const API_URL = "./products.json"; // Local JSON file for GitHub Pages
 let cart = [];
-
-// DOM
-const productList = document.getElementById("product-list");
-const cartItemsEl = document.getElementById("cart-items");
-const cartTotalEl = document.getElementById("cart-total");
-const cartCountEl = document.getElementById("cart-count");
-const clearCartBtn = document.getElementById("clear-cart");
-const checkoutBtn = document.getElementById("checkout-btn");
-
-// modal elements
-const paymentModal = document.getElementById("payment-modal");
-const closeModalBtn = document.getElementById("close-modal");
-const checkoutSummary = document.getElementById("checkout-summary");
-const paymentMethodSelect = document.getElementById("payment-method");
-const mpesaForm = document.getElementById("mpesa-form");
-const bankForm = document.getElementById("bank-form");
-const mpesaPhoneInput = document.getElementById("mpesa-phone");
-const mpesaPayBtn = document.getElementById("mpesa-pay");
-const mpesaStatus = document.getElementById("mpesa-status");
-const bankRefEl = document.getElementById("bank-ref");
-const bankDoneBtn = document.getElementById("bank-done");
-const bankStatus = document.getElementById("bank-status");
-const orderResult = document.getElementById("order-result");
-
-// Init
-document.addEventListener("DOMContentLoaded", () => {
-  fetchProducts();
-  renderCart();
-});
 
 // Fetch products
 async function fetchProducts() {
-  productList.innerHTML = "<p>Loading products...</p>";
   try {
-    const res = await fetch(API_URL);
-    if (!res.ok) throw new Error(res.statusText);
-    products = await res.json();
-    renderProducts(products);
-  } catch (err) {
-    console.error("Fetch products error:", err);
-    productList.innerHTML = `<p style="color:red">⚠️ Failed to load products. <button onclick="fetchProducts()">Retry</button></p>`;
-  }
-}
-
-// Render products
-function renderProducts(list) {
-  productList.innerHTML = "";
-  list.forEach(p => {
-    const card = document.createElement("div");
-    card.className = "product-card";
-    card.innerHTML = `
-      <img src="${p.image}" alt="${escapeHtml(p.name)}" />
-      <h3>${escapeHtml(p.name)}</h3>
-      <p><em>${escapeHtml(p.category)}</em></p>
-      <p>Brand: ${escapeHtml(p.brand)}</p>
-      <p><strong>Ksh ${Number(p.price).toLocaleString()}</strong></p>
-      <button data-id="${p.id}">Add to Cart</button>
+    const response = await fetch(API_URL);
+    const products = await response.json();
+    displayProducts(products);
+  } catch (error) {
+    console.error("Failed to load products:", error);
+    document.getElementById("products").innerHTML = `
+      <p class="error">⚠️ Failed to load products.</p>
     `;
-    const btn = card.querySelector("button");
-    btn.addEventListener("click", () => addToCart(p.id));
-    productList.appendChild(card);
-  });
-}
-
-// Add to cart by id
-function addToCart(id) {
-  const product = products.find(p => p.id === id);
-  if (!product) return;
-  const existing = cart.find(i => i.id === id);
-  if (existing) existing.qty++;
-  else cart.push({ id: product.id, name: product.name, price: product.price, qty: 1 });
-  saveCart();
-  renderCart();
-}
-
-function saveCart() { localStorage.setItem("bh_cart", JSON.stringify(cart)); }
-
-function loadCart() {
-  const saved = JSON.parse(localStorage.getItem("bh_cart") || "[]");
-  cart = Array.isArray(saved) ? saved : [];
-}
-
-// Render cart
-function renderCart() {
-  loadCart();
-  cartItemsEl.innerHTML = "";
-  let total = 0;
-  cart.forEach(item => {
-    total += item.price * item.qty;
-    const li = document.createElement("li");
-    li.className = "cart-item";
-    li.innerHTML = `<span>${escapeHtml(item.name)} - Ksh ${Number(item.price).toLocaleString()} x ${item.qty}</span>
-                    <button class="remove-btn" data-id="${item.id}">Remove</button>`;
-    cartItemsEl.appendChild(li);
-  });
-
-  cartTotalEl.textContent = total;
-  cartCountEl.textContent = cart.reduce((s, i) => s + i.qty, 0);
-
-  // attach remove listeners
-  cartItemsEl.querySelectorAll(".remove-btn").forEach(b => {
-    b.addEventListener("click", () => {
-      const id = Number(b.dataset.id);
-      removeFromCart(id);
-    });
-  });
-}
-
-function removeFromCart(id) {
-  cart = cart.filter(i => i.id !== id);
-  saveCart();
-  renderCart();
-}
-
-// Clear cart
-clearCartBtn.addEventListener("click", () => {
-  cart = [];
-  saveCart();
-  renderCart();
-});
-
-// Checkout button opens modal
-checkoutBtn.addEventListener("click", () => openPaymentModal());
-
-// Modal handlers
-function openPaymentModal() {
-  if (!cart.length) {
-    alert("Your cart is empty. Add some products first.");
-    return;
   }
-  // populate summary
-  const lines = cart.map(i => `${i.name} x${i.qty} — Ksh ${i.price * i.qty}`);
-  const total = cart.reduce((s, i) => s + i.qty * i.price, 0);
-  checkoutSummary.innerHTML = `<div>${lines.join("<br>")}</div><p><strong>Total: Ksh ${total}</strong></p>`;
-  // reset forms
-  mpesaStatus.textContent = "";
-  bankStatus.textContent = "";
-  orderResult.textContent = "";
-  mpesaPhoneInput.value = "";
-  // set default payment view
-  paymentMethodSelect.value = "mpesa";
-  mpesaForm.classList.remove("hidden");
-  bankForm.classList.add("hidden");
-  paymentModal.classList.remove("hidden");
-  paymentModal.setAttribute("aria-hidden", "false");
 }
 
-// change payment method UI
-paymentMethodSelect.addEventListener("change", (e) => {
-  if (e.target.value === "mpesa") {
-    mpesaForm.classList.remove("hidden");
-    bankForm.classList.add("hidden");
+// Display products
+function displayProducts(products) {
+  const container = document.getElementById("products");
+  container.innerHTML = "";
+
+  products.forEach(product => {
+    const item = document.createElement("div");
+    item.className = "product-card";
+
+    item.innerHTML = `
+      <img src="${product.image}" alt="${product.name}" />
+      <h3>${product.name}</h3>
+      <p><strong>Category:</strong> ${product.category}</p>
+      <p><strong>Brand:</strong> ${product.brand}</p>
+      <p><strong>Price:</strong> Ksh ${product.price}</p>
+      <button onclick="addToCart(${product.id}, '${product.name}', ${product.price})">
+        Add to Cart
+      </button>
+    `;
+
+    container.appendChild(item);
+  });
+}
+
+// Add to cart
+function addToCart(id, name, price) {
+  const existing = cart.find(item => item.id === id);
+
+  if (existing) {
+    existing.quantity++;
   } else {
-    mpesaForm.classList.add("hidden");
-    bankForm.classList.remove("hidden");
-    // generate a bank reference
-    bankRefEl.textContent = generateReference();
+    cart.push({ id, name, price, quantity: 1 });
   }
-});
 
-closeModalBtn.addEventListener("click", closePaymentModal);
-paymentModal.addEventListener("click", (e) => {
-  if (e.target === paymentModal) closePaymentModal();
-});
-
-function closePaymentModal() {
-  paymentModal.classList.add("hidden");
-  paymentModal.setAttribute("aria-hidden", "true");
+  updateCart();
 }
 
-// M-Pesa simulated "STK push"
-mpesaPayBtn.addEventListener("click", async () => {
-  const phone = mpesaPhoneInput.value.trim();
-  if (!/^(07|7)\d{8}$/.test(phone)) {
-    mpesaStatus.textContent = "Enter a valid Kenyan phone number (07XXXXXXXX).";
-    mpesaStatus.className = "status error";
-    return;
-  }
-  mpesaStatus.textContent = "Sending STK push to " + phone + " ...";
-  mpesaStatus.className = "status";
-  // simulate network call & user completing payment
-  mpesaPayBtn.disabled = true;
-  try {
-    await simulateNetwork(2000); // simulate delay
-    // random success/failure (80% success)
-    if (Math.random() < 0.8) {
-      mpesaStatus.textContent = "Payment successful (simulated).";
-      mpesaStatus.className = "status success";
-      // create order
-      const order = buildOrder("mpesa", { phone });
-      await saveOrder(order);
-      orderResult.textContent = "Order placed successfully. Order ref: " + order.reference;
-      orderResult.className = "status success";
-      // clear cart
-      cart = [];
-      saveCart();
-      renderCart();
-      setTimeout(closePaymentModal, 1400);
-    } else {
-      mpesaStatus.textContent = "Payment failed (simulated). Try again.";
-      mpesaStatus.className = "status error";
-    }
-  } catch (err) {
-    mpesaStatus.textContent = "Network error (simulated).";
-    mpesaStatus.className = "status error";
-    console.error(err);
-  } finally {
-    mpesaPayBtn.disabled = false;
-  }
-});
+// Update cart display
+function updateCart() {
+  const cartContainer = document.getElementById("cart-items");
+  cartContainer.innerHTML = "";
 
-// Bank flow — generate reference shown earlier
-bankDoneBtn.addEventListener("click", async () => {
-  const ref = bankRefEl.textContent || generateReference();
-  bankStatus.textContent = "Verifying payment (simulated)...";
-  bankStatus.className = "status";
-  bankDoneBtn.disabled = true;
-  try {
-    await simulateNetwork(1500);
-    // simulate verification (70% chance automatic success)
-    if (Math.random() < 0.7) {
-      bankStatus.textContent = "Payment verified (simulated).";
-      bankStatus.className = "status success";
-      const order = buildOrder("bank", { reference: ref });
-      await saveOrder(order);
-      orderResult.textContent = "Order placed. Order ref: " + order.reference;
-      orderResult.className = "status success";
-      cart = [];
-      saveCart();
-      renderCart();
-      setTimeout(closePaymentModal, 1400);
-    } else {
-      bankStatus.textContent = "No incoming payment found yet. Please wait or try again later.";
-      bankStatus.className = "status error";
-    }
-  } catch (err) {
-    bankStatus.textContent = "Network error (simulated).";
-    bankStatus.className = "status error";
-    console.error(err);
-  } finally {
-    bankDoneBtn.disabled = false;
-  }
-});
+  let total = 0;
 
-// Utility: create order object
-function buildOrder(method, details) {
-  const items = cart.map(i => ({ id: i.id, name: i.name, price: i.price, qty: i.qty }));
-  const total = items.reduce((s, it) => s + it.price * it.qty, 0);
-  const reference = generateReference();
-  return {
-    id: Date.now(),
-    createdAt: new Date().toISOString(),
-    method,
-    details,
-    items,
-    total,
-    reference,
-    status: "paid"
-  };
+  cart.forEach(item => {
+    total += item.price * item.quantity;
+
+    const li = document.createElement("li");
+    li.textContent = `${item.name} - Ksh ${item.price} x ${item.quantity}`;
+    cartContainer.appendChild(li);
+  });
+
+  document.getElementById("cart-total").textContent = `Total: Ksh ${total}`;
+  document.getElementById("cart-count").textContent = cart.length;
 }
 
-// Save order to backend (optional)
-async function saveOrder(order) {
-  // attempt to POST to ORDERS_URL (requires /orders in db.json and json-server running)
-  try {
-    const res = await fetch(ORDERS_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(order)
-    });
-    if (!res.ok) throw new Error("Orders save failed");
-    return await res.json();
-  } catch (err) {
-    // If saving to server fails, just log locally — still allow demo to proceed
-    console.warn("Could not save order to server (demo mode):", err);
-    return order;
-  }
-}
-
-// small helpers
-function generateReference() {
-  const r = Math.random().toString(36).slice(2, 8).toUpperCase();
-  return "BH-" + r + "-" + Date.now().toString().slice(-4);
-}
-function simulateNetwork(ms = 1000) {
-  return new Promise(resolve => setTimeout(resolve, ms));
-}
-function escapeHtml(s) {
-  if (!s) return "";
-  return String(s).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
-}
+// Init
+fetchProducts();

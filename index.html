@@ -1,76 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>💄 Beauty Haven</title>
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header>
     <h1>💄 Beauty Haven</h1>
-    <div class="cart-icon">🛒 <span id="cart-count">0</span></div>
+    <div class="cart-icon">
+      🛒 <span id="cart-count">0</span>
+    </div>
   </header>
 
   <main>
-    <section>
+    <section id="products-section">
       <h2>Our Products</h2>
-      <div id="product-list" class="grid"></div>
+      <div id="products" class="product-grid">
+        <!-- Products will load here -->
+      </div>
     </section>
 
-    <aside>
+    <aside id="cart-section">
       <h2>Your Cart</h2>
       <ul id="cart-items"></ul>
-      <p><strong>Total: Ksh <span id="cart-total">0</span></strong></p>
-
-      <!-- Checkout controls -->
-      <div id="checkout-area">
-        <button id="checkout-btn" class="primary">Checkout</button>
-      </div>
-
-      <button id="clear-cart">Clear Cart</button>
+      <p id="cart-total">Total: Ksh 0</p>
     </aside>
   </main>
 
-  <!-- Payment modal -->
-  <div id="payment-modal" class="modal hidden" aria-hidden="true">
-    <div class="modal-content">
-      <button id="close-modal" class="close">✕</button>
-      <h3>Checkout</h3>
-      <div id="checkout-summary"></div>
-
-      <label for="payment-method">Choose payment method:</label>
-      <select id="payment-method">
-        <option value="mpesa">M-Pesa (STK Push)</option>
-        <option value="bank">Bank Transfer</option>
-      </select>
-
-      <div id="mpesa-form" class="pay-form">
-        <p>Enter phone number (07XXXXXXXX):</p>
-        <input id="mpesa-phone" type="tel" placeholder="07XXXXXXXX" />
-        <button id="mpesa-pay" class="primary">Pay with M-Pesa (simulate)</button>
-        <div id="mpesa-status" class="status"></div>
-      </div>
-
-      <div id="bank-form" class="pay-form hidden">
-        <p>Transfer to the following account:</p>
-        <ul>
-          <li><strong>Bank:</strong> Example Bank</li>
-          <li><strong>Account name:</strong> Beauty Haven</li>
-          <li><strong>Account number:</strong> 1234567890</li>
-          <li><strong>Branch:</strong> Nairobi</li>
-        </ul>
-        <p>Use this payment reference:</p>
-        <p><code id="bank-ref"></code></p>
-        <button id="bank-done" class="primary">I've Paid (Mark as paid)</button>
-        <div id="bank-status" class="status"></div>
-      </div>
-
-      <div id="order-result" class="status"></div>
-    </div>
-  </div>
-
   <footer>
-    <p>© 2025 Beauty Haven by branice | Powered by JSON Server</p>
+    <p>© 2025 Beauty Haven by Branice | Powered by JSON file</p>
   </footer>
 
   <script src="script.js"></script>
